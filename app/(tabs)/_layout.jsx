@@ -34,6 +34,9 @@ export default function TabLayout() {
           tabBarIcon: ({ color }) => (
             <FontAwesome size={28} name="money" color={color} />
           ),
+          headerTitle: () => (
+            <Text style={{ fontSize: 18, fontWeight: "bold" }}>Transfer</Text>
+          ),
         }}
       />
       <Tabs.Screen
@@ -42,6 +45,9 @@ export default function TabLayout() {
           title: "Top Up",
           tabBarIcon: ({ color }) => (
             <FontAwesome size={28} name="plus-square" color={color} />
+          ),
+          headerTitle: () => (
+            <Text style={{ fontSize: 18, fontWeight: "bold" }}>Top Up</Text>
           ),
         }}
       />
