@@ -43,8 +43,11 @@ export default function Topup() {
       </Pressable>
 
       <Modal visible={modalVisible} transparent animationType="slide">
-        <View style={styles.modalOverlay}>
-          <View style={styles.modalContent}>
+        <Pressable
+          style={styles.modalOverlay}
+          onPress={() => setModalVisible(false)}
+        >
+          <Pressable style={styles.modalContent} onPress={() => {}}>
             <FlatList
               data={paymentMethods}
               keyExtractor={(item) => item}
@@ -60,8 +63,8 @@ export default function Topup() {
                 </TouchableOpacity>
               )}
             />
-          </View>
-        </View>
+          </Pressable>
+        </Pressable>
       </Modal>
 
       {/* Notes */}
