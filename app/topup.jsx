@@ -10,15 +10,20 @@ import {
   TouchableOpacity,
   Image,
 } from "react-native";
-import dropdownImg from "../../assets/dropdown.svg";
+import dropdownImg from "../assets/dropdown.svg";
+import { useRouter } from "expo-router";
 
 export default function Topup() {
   const [selectedMethod, setSelectedMethod] = useState("BYOND Pay");
   const [modalVisible, setModalVisible] = useState(false);
   const paymentMethods = ["BYOND Pay", "Credit Card", "Bank Transfer"];
+  const router = useRouter();
 
   return (
     <View style={styles.container}>
+      <Pressable onPress={router.back} style={{ marginBottom: 20 }}>
+        <Text style={{ color: "#0061ff", fontWeight: "bold" }}>← Back</Text>
+      </Pressable>
       {/* Amount */}
       <View style={styles.section}>
         <Text style={styles.amountLabel}>Amount</Text>
