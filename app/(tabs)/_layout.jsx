@@ -28,26 +28,16 @@ export default function TabLayout() {
         }}
       />
       <Tabs.Screen
-        name="transfer"
+        name="overview"
         options={{
-          title: "Transfer",
+          title: "Financial Overview",
           tabBarIcon: ({ color }) => (
-            <FontAwesome size={28} name="money" color={color} />
+            <FontAwesome size={28} name="bar-chart" color={color} />
           ),
           headerTitle: () => (
-            <Text style={{ fontSize: 18, fontWeight: "bold" }}>Transfer</Text>
-          ),
-        }}
-      />
-      <Tabs.Screen
-        name="topup"
-        options={{
-          title: "Top Up",
-          tabBarIcon: ({ color }) => (
-            <FontAwesome size={28} name="plus-square" color={color} />
-          ),
-          headerTitle: () => (
-            <Text style={{ fontSize: 18, fontWeight: "bold" }}>Top Up</Text>
+            <Text style={{ fontSize: 18, fontWeight: "bold" }}>
+              Financial Overview
+            </Text>
           ),
         }}
       />
