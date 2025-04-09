@@ -71,7 +71,18 @@ export default function Topup() {
       </View>
 
       {/* Top Up Button */}
-      <Pressable style={styles.topupButton}>
+      <Pressable
+        style={styles.topupButton}
+        onPress={() =>
+          router.push({
+            pathname: "/status/success",
+            params: {
+              type: "topup",
+              amount: "100.000",
+            },
+          })
+        }
+      >
         <Text style={styles.topupButtonText}>Top Up</Text>
       </Pressable>
     </View>

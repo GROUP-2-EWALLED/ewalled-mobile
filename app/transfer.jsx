@@ -34,7 +34,19 @@ export default function Transfer() {
       </View>
 
       {/* Transfer Button */}
-      <Pressable style={styles.transferButton}>
+      <Pressable
+        style={styles.transferButton}
+        onPress={() =>
+          router.push({
+            pathname: "/status/success",
+            params: {
+              type: "transfer",
+              amount: "100.000",
+              recipient: "9864290108 (Group 2)",
+            },
+          })
+        }
+      >
         <Text style={styles.transferButtonText}>Transfer</Text>
       </Pressable>
     </View>
