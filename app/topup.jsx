@@ -75,11 +75,8 @@ export default function Topup() {
         style={styles.topupButton}
         onPress={() =>
           router.push({
-            pathname: "/status/success",
-            params: {
-              type: "topup",
-              amount: "100.000",
-            },
+            pathname: "/status/fail",
+            params: { type: "topup" },
           })
         }
       >
