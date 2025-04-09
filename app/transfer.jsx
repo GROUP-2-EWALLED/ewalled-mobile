@@ -1,8 +1,13 @@
 import { View, Text, TextInput, StyleSheet, Pressable } from "react-native";
+import { useRouter } from "expo-router";
 
 export default function Transfer() {
+  const router = useRouter();
   return (
     <View style={styles.container}>
+      <Pressable onPress={router.back} style={{ marginBottom: 20 }}>
+        <Text style={{ color: "#0061ff", fontWeight: "bold" }}>← Back</Text>
+      </Pressable>
       {/* To dropdown */}
       <Pressable style={styles.toRow}>
         <Text style={styles.toText}>To:</Text>
@@ -29,7 +34,19 @@ export default function Transfer() {
       </View>
 
       {/* Transfer Button */}
-      <Pressable style={styles.transferButton}>
+      <Pressable
+        style={styles.transferButton}
+        onPress={() =>
+          router.push({
+            pathname: "/status/success",
+            params: {
+              type: "transfer",
+              amount: "100.000",
+              recipient: "9864290108 (Group 2)",
+            },
+          })
+        }
+      >
         <Text style={styles.transferButtonText}>Transfer</Text>
       </Pressable>
     </View>

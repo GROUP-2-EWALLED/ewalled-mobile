@@ -1,11 +1,20 @@
-import { ScrollView, Text, StyleSheet, View, Image } from "react-native";
+import {
+  ScrollView,
+  Text,
+  StyleSheet,
+  View,
+  Image,
+  TouchableOpacity,
+} from "react-native";
 import Greeting from "../../components/greetings.jsx";
 import eye from "../../assets/view.png";
 import plus from "../../assets/plus.png";
 import transfer from "../../assets/transfer.png";
 import { transactions } from "../../data/transactions.js";
+import { useRouter } from "expo-router";
 
 export default function HomeScreen() {
+  const router = useRouter();
   return (
     <ScrollView style={styles.container}>
       <Greeting />
@@ -26,12 +35,19 @@ export default function HomeScreen() {
         </View>
 
         <View style={styles.actionRow}>
-          <View style={styles.actionButton}>
+          <TouchableOpacity
+            style={styles.actionButton}
+            onPress={() => router.push("/topup")}
+          >
             <Image source={plus} style={styles.actionIcon} />
-          </View>
-          <View style={styles.actionButton}>
+          </TouchableOpacity>
+
+          <TouchableOpacity
+            style={styles.actionButton}
+            onPress={() => router.push("/transfer")}
+          >
             <Image source={transfer} style={styles.actionIcon} />
-          </View>
+          </TouchableOpacity>
         </View>
       </View>
 
