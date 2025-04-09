@@ -117,9 +117,11 @@ export default function Transfer() {
               <>
                 <Text style={styles.modalTitle}>Account Info</Text>
                 <Text style={styles.modalLabel}>Account Number</Text>
-                <Text>{accountInfo?.accountNumber}</Text>
+                <Text style={styles.modalLabelValue}>
+                  {accountInfo?.accountNumber}
+                </Text>
                 <Text style={[styles.modalLabel, { marginTop: 12 }]}>Name</Text>
-                <Text>{accountInfo?.name}</Text>
+                <Text style={styles.modalLabelValue}>{accountInfo?.name}</Text>
                 <Pressable
                   style={styles.confirmButton}
                   onPress={() => setModalVisible(false)}
@@ -284,6 +286,10 @@ const styles = StyleSheet.create({
 
   modalLabel: {
     fontWeight: "bold",
+    alignSelf: "flex-start",
+  },
+
+  modalLabelValue: {
     alignSelf: "flex-start",
   },
 
