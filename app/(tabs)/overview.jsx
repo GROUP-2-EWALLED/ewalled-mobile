@@ -8,8 +8,7 @@ import {
 import { useState } from "react";
 
 export default function Overview() {
-  const [period, setPeriod] = useState("weekly"); // or "monthly", "quarterly"
-
+  const [period, setPeriod] = useState("weekly"); // "weekly", "monthly", "quarterly"
   return (
     <ScrollView style={styles.container}>
       <Text style={styles.greeting}>Hello, Chelsea</Text>

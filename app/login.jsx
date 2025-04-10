@@ -7,7 +7,7 @@ import {
   Image,
 } from "react-native";
 import { Link, router } from "expo-router";
-import logo from "../assets/logo.svg";
+import logo from "../assets/logo.png";
 
 export default function LoginScreen() {
   return (
@@ -48,8 +48,6 @@ const styles = StyleSheet.create({
     backgroundColor: "#fff",
   },
   logo: {
-    height: "57px",
-    width: "233px",
     resizeMode: "contain",
     alignSelf: "center",
     marginBottom: 32,

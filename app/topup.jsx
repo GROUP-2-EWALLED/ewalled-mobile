@@ -10,7 +10,7 @@ import {
   TouchableOpacity,
   Image,
 } from "react-native";
-import dropdownImg from "../assets/dropdown.svg";
+import dropdownImg from "../assets/dropdown.png";
 import { useRouter } from "expo-router";
 
 export default function Topup() {
@@ -29,7 +29,11 @@ export default function Topup() {
         <Text style={styles.amountLabel}>Amount</Text>
         <View style={styles.amountRow}>
           <Text style={styles.currency}>IDR</Text>
-          <TextInput style={styles.amountInput} defaultValue="100.000" />
+          <TextInput
+            style={styles.amountInput}
+            defaultValue="0"
+            keyboardType="numeric"
+          />
         </View>
       </View>
 

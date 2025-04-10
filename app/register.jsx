@@ -6,17 +6,19 @@ import {
   TouchableOpacity,
   StyleSheet,
   Image,
-  CheckBox,
   Modal,
   ScrollView,
   Pressable,
 } from "react-native";
+import CheckBox from "expo-checkbox";
 import { Link } from "expo-router";
-import logo from "../assets/logo.svg";
+import logo from "../assets/logo.png";
+import { useRouter } from "expo-router";
 
 export default function RegisterScreen() {
   const [agree, setAgree] = useState(false);
   const [isTncVisible, setTncVisible] = useState(false);
+  const router = useRouter();
 
   return (
     <View style={styles.container}>
@@ -42,7 +44,14 @@ export default function RegisterScreen() {
         </Text>
       </View>
 
-      <TouchableOpacity style={styles.button} disabled={!agree}>
+      <TouchableOpacity
+        style={[styles.button, !agree && { backgroundColor: "#ccc" }]}
+        onPress={() => {
+          if (agree) {
+            router.replace("/login");
+          }
+        }}
+      >
         <Text style={styles.buttonText}>Register</Text>
       </TouchableOpacity>
 
@@ -109,8 +118,6 @@ const styles = StyleSheet.create({
     justifyContent: "center",
   },
   logo: {
-    height: "57px",
-    width: "233px",
     resizeMode: "contain",
     alignSelf: "center",
     marginBottom: 24,
