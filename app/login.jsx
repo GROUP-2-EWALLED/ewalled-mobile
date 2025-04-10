@@ -15,7 +15,7 @@ const isValidEmail = (email) => /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
 
 const mockUsers = [
   { email: "test@gmail.com", password: "Password123!" },
-  { email: "chelsea@gmail.com", password: "Chelsea123!" },
+  { email: "chelsea@gmail.com", password: "Password123!" },
 ];
 
 export default function LoginScreen() {
