@@ -11,7 +11,6 @@ import {
   Pressable,
 } from "react-native";
 import CheckBox from "expo-checkbox";
-import { Link } from "expo-router";
 import logo from "../assets/logo.png";
 import { useRouter } from "expo-router";
 import { useIsFocused } from "@react-navigation/native";
@@ -24,6 +23,7 @@ const existingUsers = [
 export default function RegisterScreen() {
   const [agree, setAgree] = useState(false);
   const [isTncVisible, setTncVisible] = useState(false);
+  const [tncOpened, setTncOpened] = useState(false);
   const router = useRouter();
 
   const [fullname, setFullname] = useState("");
@@ -42,6 +42,7 @@ export default function RegisterScreen() {
       setUsername("");
       setEmail("");
       setPassword("");
+      setPhone("");
       setAvatar("");
       setAgree(false);
       setErrors({});
@@ -101,7 +102,6 @@ export default function RegisterScreen() {
         newErrors.avatar = "Invalid URL format.";
       }
     }
-    //localhost:8080/api/transactions/export/pdf?walletId=1
 
     http: if (!agree) {
       newErrors.agree = "You must agree to the Terms and Conditions.";
@@ -196,29 +196,49 @@ export default function RegisterScreen() {
       {errors.avatar && <Text style={styles.errorText}>{errors.avatar}</Text>}
 
       <View style={styles.checkboxContainer}>
-        <CheckBox value={agree} onValueChange={setAgree} />
-        <Text style={styles.checkboxText}>
-          I have read and agree to the{" "}
-          <Text style={styles.linkText} onPress={() => setTncVisible(true)}>
+        <CheckBox
+          value={agree}
+          onValueChange={setAgree}
+          disabled={!tncOpened}
+        />
+        <View style={{ flexDirection: "row", flexWrap: "wrap", marginLeft: 8 }}>
+          <Text style={[styles.checkboxText, !tncOpened && { opacity: 0.5 }]}>
+            I have read and agree to the{" "}
+          </Text>
+          <Text
+            style={[
+              styles.linkText,
+              {
+                opacity: 1,
+                fontWeight: "bold",
+                textDecorationLine: "underline",
+              },
+            ]}
+            onPress={() => {
+              setTncVisible(true);
+              setTncOpened(true);
+            }}
+          >
             Terms and Conditions
           </Text>
-          <Text style={{ color: "red" }}> *</Text>
-        </Text>
+          <Text style={{ color: "red", opacity: 1 }}> *</Text>
+        </View>
       </View>
       {errors.agree && <Text style={styles.errorText}>{errors.agree}</Text>}
 
       <TouchableOpacity
         style={[styles.button, !agree && { backgroundColor: "#ccc" }]}
         onPress={handleRegister}
+        disabled={!agree}
       >
         <Text style={styles.buttonText}>Register</Text>
       </TouchableOpacity>
 
       <Text style={styles.footerText}>
         Have an account?{" "}
-        <Link href="/login" style={styles.linkText}>
+        <Text style={styles.linkText} onPress={() => router.replace("/login")}>
           Login here
-        </Link>
+        </Text>
       </Text>
 
       {/* Terms & Conditions Modal */}
