@@ -12,9 +12,12 @@ import plus from "../../assets/plus.png";
 import transfer from "../../assets/transfer.png";
 import { transactions } from "../../data/transactions.js";
 import { useRouter } from "expo-router";
+import { useState } from "react";
 
 export default function HomeScreen() {
   const router = useRouter();
+  const [showBalance, setShowBalance] = useState(true);
+
   return (
     <ScrollView style={styles.container}>
       <Greeting />
@@ -29,8 +32,12 @@ export default function HomeScreen() {
         <View style={styles.balanceRow}>
           <Text style={styles.balance}>Balance</Text>
           <View style={styles.balanceAmountRow}>
-            <Text style={styles.amount}>Rp 10.000.000</Text>
-            <Image style={styles.eye} source={eye} />
+            <Text style={styles.amount}>
+              {showBalance ? "Rp 10.000.000" : "••••••••"}
+            </Text>
+            <TouchableOpacity onPress={() => setShowBalance(!showBalance)}>
+              <Image style={styles.eye} source={eye} />
+            </TouchableOpacity>
           </View>
         </View>
 
