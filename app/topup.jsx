@@ -10,7 +10,7 @@ import {
   TouchableOpacity,
   Image,
 } from "react-native";
-import dropdownImg from "../assets/dropdown.svg";
+import dropdownImg from "../assets/dropdown.png";
 import { useRouter } from "expo-router";
 
 export default function Topup() {
@@ -29,7 +29,11 @@ export default function Topup() {
         <Text style={styles.amountLabel}>Amount</Text>
         <View style={styles.amountRow}>
           <Text style={styles.currency}>IDR</Text>
-          <TextInput style={styles.amountInput} defaultValue="100.000" />
+          <TextInput
+            style={styles.amountInput}
+            defaultValue="0"
+            keyboardType="numeric"
+          />
         </View>
       </View>
 
@@ -43,8 +47,11 @@ export default function Topup() {
       </Pressable>
 
       <Modal visible={modalVisible} transparent animationType="slide">
-        <View style={styles.modalOverlay}>
-          <View style={styles.modalContent}>
+        <Pressable
+          style={styles.modalOverlay}
+          onPress={() => setModalVisible(false)}
+        >
+          <Pressable style={styles.modalContent} onPress={() => {}}>
             <FlatList
               data={paymentMethods}
               keyExtractor={(item) => item}
@@ -60,8 +67,8 @@ export default function Topup() {
                 </TouchableOpacity>
               )}
             />
-          </View>
-        </View>
+          </Pressable>
+        </Pressable>
       </Modal>
 
       {/* Notes */}
