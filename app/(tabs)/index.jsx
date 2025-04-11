@@ -19,6 +19,46 @@ export default function HomeScreen() {
   const router = useRouter();
   const [showBalance, setShowBalance] = useState(true);
   const [searchQuery, setSearchQuery] = useState("");
+  const [sortBy, setSortBy] = useState("Date");
+  const [sortOrder, setSortOrder] = useState("Descending");
+  const [showSortByDropdown, setShowSortByDropdown] = useState(false);
+  const [showSortOrderDropdown, setShowSortOrderDropdown] = useState(false);
+
+  const Dropdown = ({
+    label,
+    options,
+    value,
+    onSelect,
+    visible,
+    setVisible,
+  }) => (
+    <View style={styles.dropdownContainer}>
+      <TouchableOpacity
+        onPress={() => setVisible(!visible)}
+        style={styles.dropdownToggle}
+      >
+        <Text style={styles.dropdownText}>
+          {label} {value}
+        </Text>
+      </TouchableOpacity>
+      {visible && (
+        <View style={styles.dropdownMenu}>
+          {options.map((option) => (
+            <TouchableOpacity
+              key={option}
+              onPress={() => {
+                onSelect(option);
+                setVisible(false);
+              }}
+              style={styles.dropdownItem}
+            >
+              <Text style={styles.dropdownItemText}>{option}</Text>
+            </TouchableOpacity>
+          ))}
+        </View>
+      )}
+    </View>
+  );
 
   const filteredTransactions = transactions.filter(
     (item) =>
@@ -28,9 +68,21 @@ export default function HomeScreen() {
       item.amount.toString().includes(searchQuery.toLowerCase())
   );
 
+  const sortedTransactions = [...filteredTransactions].sort((a, b) => {
+    if (sortBy === "Amount") {
+      return sortOrder === "Ascending"
+        ? a.amount - b.amount
+        : b.amount - a.amount;
+    } else {
+      return sortOrder === "Ascending"
+        ? new Date(a.date) - new Date(b.date)
+        : new Date(b.date) - new Date(a.date);
+    }
+  });
+
   return (
     <FlatList
-      data={filteredTransactions}
+      data={sortedTransactions}
       keyExtractor={(item) => item.id.toString()}
       ListHeaderComponent={
         <>
@@ -81,6 +133,28 @@ export default function HomeScreen() {
               value={searchQuery}
               style={styles.searchBar}
             />
+            <View style={styles.sortWrapper}>
+              <Text style={{ marginRight: 4, alignSelf: "center" }}>
+                Sort By
+              </Text>
+              <Dropdown
+                label=""
+                options={["Date", "Amount"]}
+                value={sortBy}
+                onSelect={setSortBy}
+                visible={showSortByDropdown}
+                setVisible={setShowSortByDropdown}
+              />
+
+              <Dropdown
+                label=""
+                options={["Ascending", "Descending"]}
+                value={sortOrder}
+                onSelect={setSortOrder}
+                visible={showSortOrderDropdown}
+                setVisible={setShowSortOrderDropdown}
+              />
+            </View>
           </View>
 
           <Text style={styles.transactionTitle}>Transaction History</Text>
@@ -250,16 +324,71 @@ const styles = StyleSheet.create({
 
   // control bar styles
   controlBar: {
-    flexDirection: "row",
+    flex: "flex",
     alignItems: "center",
-    marginBottom: 12,
+    marginBottom: 30,
     gap: 8,
-    flexWrap: "wrap",
+    flexWrap: "wrap", // allows wrapping on small screens
   },
+
   searchBar: {
-    marginBottom: 16,
     borderRadius: 10,
     elevation: 2,
     backgroundColor: "#fff",
+    marginBottom: 12,
+  },
+
+  // dropdown styles
+
+  sortWrapper: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 8,
+  },
+
+  dropdownContainer: {
+    position: "relative",
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 8,
+    zIndex: 999,
+  },
+
+  dropdownToggle: {
+    backgroundColor: "#fff",
+    borderRadius: 8,
+    paddingVertical: 10,
+    paddingHorizontal: 25,
+    elevation: 2,
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
+  },
+
+  dropdownText: {
+    fontSize: 14,
+    color: "#000",
+  },
+
+  dropdownMenu: {
+    position: "absolute",
+    top: 40,
+    left: 0,
+    right: 0,
+    backgroundColor: "#fff",
+    borderRadius: 8,
+    elevation: 4,
+    zIndex: 100,
+  },
+
+  dropdownItem: {
+    padding: 10,
+    borderBottomColor: "#eee",
+    borderBottomWidth: 1,
+  },
+
+  dropdownItemText: {
+    fontSize: 14,
+    color: "#333",
   },
 });
