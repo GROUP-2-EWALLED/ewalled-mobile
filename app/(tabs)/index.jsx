@@ -1,10 +1,10 @@
 import {
-  ScrollView,
   Text,
   StyleSheet,
   View,
   Image,
   TouchableOpacity,
+  FlatList,
 } from "react-native";
 import Greeting from "../../components/greetings.jsx";
 import eye from "../../assets/view.png";
@@ -13,56 +13,82 @@ import transfer from "../../assets/transfer.png";
 import { transactions } from "../../data/transactions.js";
 import { useRouter } from "expo-router";
 import { useState } from "react";
+import { Searchbar } from "react-native-paper";
 
 export default function HomeScreen() {
   const router = useRouter();
   const [showBalance, setShowBalance] = useState(true);
+  const [searchQuery, setSearchQuery] = useState("");
+
+  const filteredTransactions = transactions.filter(
+    (item) =>
+      item.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      item.type.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      item.date.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      item.amount.toString().includes(searchQuery.toLowerCase())
+  );
 
   return (
-    <ScrollView style={styles.container}>
-      <Greeting />
-      {/* account no */}
-      <View style={styles.account}>
-        <Text style={styles.accountNo}>Account No.</Text>
-        <Text style={styles.accountNo}>100899</Text>
-      </View>
-
-      {/* balance card */}
-      <View style={styles.balanceCard}>
-        <View style={styles.balanceRow}>
-          <Text style={styles.balance}>Balance</Text>
-          <View style={styles.balanceAmountRow}>
-            <Text style={styles.amount}>
-              {showBalance ? "Rp 10.000.000" : "••••••••"}
-            </Text>
-            <TouchableOpacity onPress={() => setShowBalance(!showBalance)}>
-              <Image style={styles.eye} source={eye} />
-            </TouchableOpacity>
+    <FlatList
+      data={filteredTransactions}
+      keyExtractor={(item) => item.id.toString()}
+      ListHeaderComponent={
+        <>
+          <Greeting />
+          {/* account no */}
+          <View style={styles.account}>
+            <Text style={styles.accountNo}>Account No.</Text>
+            <Text style={styles.accountNo}>100899</Text>
           </View>
-        </View>
 
-        <View style={styles.actionRow}>
-          <TouchableOpacity
-            style={styles.actionButton}
-            onPress={() => router.push("/topup")}
-          >
-            <Image source={plus} style={styles.actionIcon} />
-          </TouchableOpacity>
+          {/* balance card */}
+          <View style={styles.balanceCard}>
+            <View style={styles.balanceRow}>
+              <Text style={styles.balance}>Balance</Text>
+              <View style={styles.balanceAmountRow}>
+                <Text style={styles.amount}>
+                  {showBalance ? "Rp 10.000.000" : "••••••••"}
+                </Text>
+                <TouchableOpacity onPress={() => setShowBalance(!showBalance)}>
+                  <Image style={styles.eye} source={eye} />
+                </TouchableOpacity>
+              </View>
+            </View>
 
-          <TouchableOpacity
-            style={styles.actionButton}
-            onPress={() => router.push("/transfer")}
-          >
-            <Image source={transfer} style={styles.actionIcon} />
-          </TouchableOpacity>
-        </View>
-      </View>
+            <View style={styles.actionRow}>
+              <TouchableOpacity
+                style={styles.actionButton}
+                onPress={() => router.push("/topup")}
+              >
+                <Image source={plus} style={styles.actionIcon} />
+              </TouchableOpacity>
 
-      {/* transactions */}
-      <View style={styles.transactionContainer}>
-        <Text style={styles.transactionTitle}>Transaction History</Text>
-        {transactions.map((item) => (
-          <View key={item.id} style={styles.transactionItem}>
+              <TouchableOpacity
+                style={styles.actionButton}
+                onPress={() => router.push("/transfer")}
+              >
+                <Image source={transfer} style={styles.actionIcon} />
+              </TouchableOpacity>
+            </View>
+          </View>
+
+          {/* control bar */}
+          <View style={styles.controlBar}>
+            {/* Search Bar */}
+            <Searchbar
+              placeholder="Search transactions"
+              onChangeText={setSearchQuery}
+              value={searchQuery}
+              style={styles.searchBar}
+            />
+          </View>
+
+          <Text style={styles.transactionTitle}>Transaction History</Text>
+        </>
+      }
+      renderItem={({ item }) => (
+        <View style={styles.transactionContainer}>
+          <View style={styles.transactionItem}>
             <View style={styles.transactionLeft}>
               <View style={styles.profileCircle} />
               <View>
@@ -82,15 +108,21 @@ export default function HomeScreen() {
                 : `- ${Math.abs(item.amount)}`}
             </Text>
           </View>
-        ))}
-      </View>
-    </ScrollView>
+          <View style={styles.divider} />
+        </View>
+      )}
+      ListEmptyComponent={
+        <View style={styles.emptyState}>
+          <Text style={styles.emptyText}>No transactions available</Text>
+        </View>
+      }
+      contentContainerStyle={styles.container}
+    />
   );
 }
 
 const styles = StyleSheet.create({
   container: {
-    flex: 1,
     padding: 20,
     backgroundColor: "#f7f9fb",
   },
@@ -204,5 +236,30 @@ const styles = StyleSheet.create({
 
   amountText: {
     fontWeight: "600",
+  },
+
+  emptyState: {
+    alignItems: "center",
+    paddingVertical: 20,
+  },
+
+  emptyText: {
+    color: "#888",
+    fontSize: 14,
+  },
+
+  // control bar styles
+  controlBar: {
+    flexDirection: "row",
+    alignItems: "center",
+    marginBottom: 12,
+    gap: 8,
+    flexWrap: "wrap",
+  },
+  searchBar: {
+    marginBottom: 16,
+    borderRadius: 10,
+    elevation: 2,
+    backgroundColor: "#fff",
   },
 });
