@@ -6,7 +6,7 @@ import {
   TouchableOpacity,
   Image,
 } from "react-native";
-import { Link, router } from "expo-router";
+import { router } from "expo-router";
 import { useIsFocused } from "@react-navigation/native";
 import logo from "../assets/logo.png";
 import { useState, useEffect } from "react";
@@ -104,9 +104,12 @@ export default function LoginScreen() {
 
       <Text style={styles.footerText}>
         Don’t have account?{" "}
-        <Link href="/register" style={styles.linkText}>
+        <Text
+          style={styles.linkText}
+          onPress={() => router.replace("/register")}
+        >
           Register here
-        </Link>
+        </Text>
       </Text>
     </View>
   );
