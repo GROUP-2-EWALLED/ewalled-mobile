@@ -23,6 +23,8 @@ export default function HomeScreen() {
   const [sortOrder, setSortOrder] = useState("Descending");
   const [showSortByDropdown, setShowSortByDropdown] = useState(false);
   const [showSortOrderDropdown, setShowSortOrderDropdown] = useState(false);
+  const [currentPage, setCurrentPage] = useState(1);
+  const [itemsPerPage, setItemsPerPage] = useState(5);
 
   const Dropdown = ({
     label,
@@ -80,9 +82,13 @@ export default function HomeScreen() {
     }
   });
 
+  const startIdx = (currentPage - 1) * itemsPerPage;
+  const endIdx = startIdx + itemsPerPage;
+  const paginatedTransactions = sortedTransactions.slice(startIdx, endIdx);
+
   return (
     <FlatList
-      data={sortedTransactions}
+      data={paginatedTransactions}
       keyExtractor={(item) => item.id.toString()}
       ListHeaderComponent={
         <>
@@ -191,6 +197,35 @@ export default function HomeScreen() {
         </View>
       }
       contentContainerStyle={styles.container}
+      ListFooterComponent={
+        <View style={styles.paginationContainer}>
+          <TouchableOpacity
+            onPress={() => setCurrentPage((prev) => Math.max(prev - 1, 1))}
+            disabled={currentPage === 1}
+            style={[
+              styles.paginationButton,
+              currentPage === 1 && styles.disabledButton,
+            ]}
+          >
+            <Text style={styles.paginationText}>Previous</Text>
+          </TouchableOpacity>
+
+          <TouchableOpacity
+            onPress={() =>
+              setCurrentPage((prev) =>
+                endIdx < sortedTransactions.length ? prev + 1 : prev
+              )
+            }
+            disabled={endIdx >= sortedTransactions.length}
+            style={[
+              styles.paginationButton,
+              endIdx >= sortedTransactions.length && styles.disabledButton,
+            ]}
+          >
+            <Text style={styles.paginationText}>Next</Text>
+          </TouchableOpacity>
+        </View>
+      }
     />
   );
 }
@@ -390,5 +425,31 @@ const styles = StyleSheet.create({
   dropdownItemText: {
     fontSize: 14,
     color: "#333",
+  },
+
+  // pagination styles
+  paginationContainer: {
+    flexDirection: "row",
+    justifyContent: "flex-end", // aligns everything to the right
+    alignItems: "center",
+    gap: 16,
+    marginTop: 16,
+    paddingBottom: 20, // optional: adds bottom spacing
+  },
+
+  paginationButton: {
+    backgroundColor: "#0061FF",
+    paddingHorizontal: 16,
+    paddingVertical: 10,
+    borderRadius: 8,
+  },
+
+  paginationText: {
+    color: "#fff",
+    fontWeight: "bold",
+  },
+
+  disabledButton: {
+    backgroundColor: "#ccc",
   },
 });
