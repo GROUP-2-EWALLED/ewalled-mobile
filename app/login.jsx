@@ -10,6 +10,8 @@ import { router } from "expo-router";
 import { useIsFocused } from "@react-navigation/native";
 import logo from "../assets/logo.png";
 import { useState, useEffect } from "react";
+import useAuthStore from "./store/authStore";
+import axios from "axios";
 
 const isValidEmail = (email) => /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
 
@@ -19,12 +21,11 @@ const mockUsers = [
 ];
 
 export default function LoginScreen() {
+  const { setData } = useAuthStore();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
-
   const [emailError, setEmailError] = useState("");
   const [passwordError, setPasswordError] = useState("");
-
   const isFocused = useIsFocused();
 
   useEffect(() => {
@@ -36,7 +37,7 @@ export default function LoginScreen() {
     }
   }, [isFocused]);
 
-  const handleLogin = () => {
+  const handleLogin = async () => {
     // Reset errors
     setEmailError("");
     setPasswordError("");
@@ -51,20 +52,24 @@ export default function LoginScreen() {
       setEmailError("Invalid email format.");
       return;
     }
+    try {
+      const { data } = await axios.post(
+        "https://ewalled-api-production.up.railway.app/api/auth/login",
+        { email, password }
+      );
 
-    const user = mockUsers.find(
-      (u) => u.email === email && u.password === password
-    );
+      await setData({
+        user: data.user,
+        wallet: data.wallet,
+      });
 
-    if (!user) {
-      // Generic error for incorrect email or password
-      setEmailError("Incorrect email or password.");
-      setPasswordError("Incorrect email or password.");
-      return;
+      router.replace("/"); // or navigate to Home
+    } catch (err) {
+      // show error messages
+      const message = "Email atau password salah.";
+      setEmailError(message);
+      setPasswordError(message);
     }
-
-    // Success
-    router.push("/");
   };
 
   return (
