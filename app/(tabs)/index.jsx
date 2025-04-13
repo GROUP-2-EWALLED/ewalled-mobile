@@ -10,13 +10,23 @@ import Greeting from "../../components/greetings.jsx";
 import eye from "../../assets/view.png";
 import plus from "../../assets/plus.png";
 import transfer from "../../assets/transfer.png";
-import { transactions } from "../../data/transactions.js";
+// import { transactions } from "../../data/transactions.js";
 import { useRouter } from "expo-router";
-import { useState } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { Searchbar } from "react-native-paper";
+import useAuthStore from "../store/authStore";
+import { useFocusEffect } from "@react-navigation/native";
+import { capitalize } from "../../util/capitalize.js";
 
 export default function HomeScreen() {
   const router = useRouter();
+  const {
+    user,
+    wallet,
+    transactions,
+    fetchWalletByUserId,
+    fetchTransactionsByWalletId,
+  } = useAuthStore();
   const [showBalance, setShowBalance] = useState(true);
   const [searchQuery, setSearchQuery] = useState("");
   const [sortBy, setSortBy] = useState("Date");
@@ -25,6 +35,21 @@ export default function HomeScreen() {
   const [showSortOrderDropdown, setShowSortOrderDropdown] = useState(false);
   const [currentPage, setCurrentPage] = useState(1);
   const [itemsPerPage, setItemsPerPage] = useState(5);
+
+  useFocusEffect(
+    useCallback(() => {
+      const refreshData = async () => {
+        if (wallet?.userId) {
+          await fetchWalletByUserId(wallet.userId);
+          const updatedWallet = useAuthStore.getState().wallet;
+          if (updatedWallet?.id) {
+            await fetchTransactionsByWalletId(updatedWallet.id);
+          }
+        }
+      };
+      refreshData();
+    }, [wallet?.userId])
+  );
 
   const Dropdown = ({
     label,
@@ -64,24 +89,29 @@ export default function HomeScreen() {
 
   const filteredTransactions = transactions.filter(
     (item) =>
-      item.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      item.type.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      item.date.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      item.amount.toString().includes(searchQuery.toLowerCase())
+      item.fromTo.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      item.transactionDate.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      item.transactionType.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      item.amount.toString().includes(searchQuery)
   );
 
   const sortedTransactions = [...filteredTransactions].sort((a, b) => {
-    if (sortBy === "Amount") {
-      return sortOrder === "Ascending"
-        ? a.amount - b.amount
-        : b.amount - a.amount;
-    } else {
-      return sortOrder === "Ascending"
-        ? new Date(a.date) - new Date(b.date)
-        : new Date(b.date) - new Date(a.date);
-    }
-  });
+    const getSignedAmount = (tx) => {
+      const isIncomingTransfer =
+        tx.transactionType === "TRANSFER" && tx.recipientWalletId === wallet.id;
+      const isTopUp = tx.transactionType === "TOP_UP";
 
+      const isPositive = isTopUp || isIncomingTransfer;
+      return isPositive ? tx.amount : -tx.amount;
+    };
+
+    const valueA =
+      sortBy === "Amount" ? getSignedAmount(a) : new Date(a.transactionDate);
+    const valueB =
+      sortBy === "Amount" ? getSignedAmount(b) : new Date(b.transactionDate);
+
+    return sortOrder === "Ascending" ? valueA - valueB : valueB - valueA;
+  });
   const startIdx = (currentPage - 1) * itemsPerPage;
   const endIdx = startIdx + itemsPerPage;
   const paginatedTransactions = sortedTransactions.slice(startIdx, endIdx);
@@ -96,7 +126,7 @@ export default function HomeScreen() {
           {/* account no */}
           <View style={styles.account}>
             <Text style={styles.accountNo}>Account No.</Text>
-            <Text style={styles.accountNo}>100899</Text>
+            <Text style={styles.accountNo}>{wallet?.accountNumber}</Text>
           </View>
 
           {/* balance card */}
@@ -105,7 +135,14 @@ export default function HomeScreen() {
               <Text style={styles.balance}>Balance</Text>
               <View style={styles.balanceAmountRow}>
                 <Text style={styles.amount}>
-                  {showBalance ? "Rp 10.000.000" : "••••••••"}
+                  {showBalance
+                    ? `Rp ${Number(wallet?.balance || 0).toLocaleString(
+                        "id-ID",
+                        {
+                          minimumFractionDigits: 2,
+                        }
+                      )}`
+                    : "Rp ••••••••"}
                 </Text>
                 <TouchableOpacity onPress={() => setShowBalance(!showBalance)}>
                   <Image style={styles.eye} source={eye} />
@@ -170,22 +207,43 @@ export default function HomeScreen() {
         <View style={styles.transactionContainer}>
           <View style={styles.transactionItem}>
             <View style={styles.transactionLeft}>
-              <View style={styles.profileCircle} />
+              {/* <View style={styles.profileCircle} /> */}
               <View>
-                <Text style={styles.name}>{item.name}</Text>
-                <Text style={styles.type}>{item.type}</Text>
-                <Text style={styles.date}>{item.date}</Text>
+                <Text style={styles.name}>
+                  {item.fromTo === "-"
+                    ? capitalize(user.fullname)
+                    : capitalize(item.fromTo)}
+                </Text>
+                <Text style={styles.type}>
+                  {item.transactionType === "TOP_UP"
+                    ? "Top Up"
+                    : item.transactionType === "TRANSFER"
+                    ? "Transfer"
+                    : item.transactionType}
+                </Text>
+                <Text style={styles.date}>
+                  {new Date(item.transactionDate).toLocaleString("id-ID")}
+                </Text>
               </View>
             </View>
             <Text
               style={[
                 styles.amountText,
-                { color: item.amount > 0 ? "green" : "black" },
+                {
+                  color:
+                    item.transactionType === "TOP_UP" ||
+                    (item.transactionType === "TRANSFER" &&
+                      item.recipientWalletId === wallet.id)
+                      ? "green"
+                      : "red",
+                },
               ]}
             >
-              {item.amount > 0
-                ? `+ ${item.amount}`
-                : `- ${Math.abs(item.amount)}`}
+              {item.transactionType === "TOP_UP" ||
+              (item.transactionType === "TRANSFER" &&
+                item.recipientWalletId === wallet.id)
+                ? `+ ${Number(item.amount).toLocaleString("id-ID")}`
+                : `- ${Number(item.amount).toLocaleString("id-ID")}`}
             </Text>
           </View>
           <View style={styles.divider} />
