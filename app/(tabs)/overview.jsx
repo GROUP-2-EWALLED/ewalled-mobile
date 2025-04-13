@@ -15,56 +15,38 @@ import {
   VictoryGroup,
   VictoryBar,
 } from "victory-native";
-
-const chartData = {
-  weekly: {
-    totalIncome: 6381313.0,
-    totalOutcome: 2850000.0,
-    netBalance: 3531313.0,
-    data: [
-      { period: "Week 15", income: 6381313.0, outcome: 2850000.0 },
-      { period: "Week 14", income: 0, outcome: 0 },
-      { period: "Week 13", income: 0, outcome: 0 },
-      { period: "Week 12", income: 0, outcome: 0 },
-    ],
-  },
-  monthly: {
-    totalIncome: 6381313.0,
-    totalOutcome: 2850000.0,
-    netBalance: 3531313.0,
-    data: [
-      { period: "April", income: 6381313.0, outcome: 2850000.0 },
-      { period: "March", income: 0, outcome: 0 },
-      { period: "February", income: 0, outcome: 0 },
-      { period: "January", income: 0, outcome: 0 },
-    ],
-  },
-  quarterly: {
-    totalIncome: 6381313.0,
-    totalOutcome: 2850000.0,
-    netBalance: 3531313.0,
-    data: [
-      { period: "Q2", income: 6381313.0, outcome: 2850000.0 },
-      { period: "Q1", income: 0, outcome: 0 },
-      { period: "Q0", income: 0, outcome: 0 },
-      { period: "Q-1", income: 0, outcome: 0 },
-    ],
-  },
-};
+import { useEffect } from "react";
+import axios from "axios";
 
 export default function Overview() {
   const [period, setPeriod] = useState("weekly"); // "weekly", "monthly", "quarterly"
-  const { user } = useAuthStore();
+  const [summaryData, setSummaryData] = useState(null);
+  const { user, wallet } = useAuthStore();
 
   const fullname = capitalize(user?.fullname) || "User";
-  const selectedData = chartData[period];
 
-  // const chartFormatted = selectedData.data.map((item) => ({
-  //   x: item.period,
-  //   income: item.income,
-  //   outcome: item.outcome,
-  // }));
+  useEffect(() => {
+    const fetchSummary = async () => {
+      try {
+        const response = await axios.get(
+          `https://ewalled-api-production.up.railway.app/api/summary/${wallet.id}`
+        );
+        setSummaryData(response.data);
+      } catch (err) {
+        console.error("Failed to fetch summary data:", err);
+      }
+    };
 
+    if (wallet?.id) {
+      fetchSummary();
+    }
+  }, [wallet?.id]);
+
+  if (!wallet?.id || !summaryData) {
+    return <Text style={{ padding: 20 }}>Loading summary...</Text>;
+  }
+
+  const selectedData = summaryData[period];
   const chartFormatted = [...selectedData.data].reverse().map((item) => ({
     x: item.period,
     income: item.income,
