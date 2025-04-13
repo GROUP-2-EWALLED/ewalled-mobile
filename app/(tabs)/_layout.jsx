@@ -29,7 +29,7 @@ export default function TabLayout() {
                 <Text style={styles.accountType}>Personal Account</Text>
               </View>
 
-              <Image source={mode} style={styles.mode} />
+              {/* <Image source={mode} style={styles.mode} /> */}
             </View>
           ),
         }}
