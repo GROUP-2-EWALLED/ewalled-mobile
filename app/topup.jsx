@@ -12,12 +12,70 @@ import {
 } from "react-native";
 import dropdownImg from "../assets/dropdown.png";
 import { useRouter } from "expo-router";
+import axios from "axios";
+import useAuthStore from "./store/authStore";
 
 export default function Topup() {
+  const { wallet, fetchWalletByUserId } = useAuthStore();
+  const [amount, setAmount] = useState("");
+  const [note, setNote] = useState("");
+  const [errors, setErrors] = useState({});
+  const [loading, setLoading] = useState(false);
   const [selectedMethod, setSelectedMethod] = useState("BYOND Pay");
   const [modalVisible, setModalVisible] = useState(false);
   const paymentMethods = ["BYOND Pay", "Credit Card", "Bank Transfer"];
   const router = useRouter();
+
+  const validate = () => {
+    const newErrors = {};
+    if (!amount.trim()) {
+      newErrors.amount = "Amount is required.";
+    } else if (isNaN(amount) || parseFloat(amount) <= 0) {
+      newErrors.amount = "Amount must be greater than 0.";
+    }
+
+    if (!selectedMethod.trim()) {
+      newErrors.method = "Payment method is required.";
+    }
+
+    if (note.length > 100) {
+      newErrors.note = "Note too long (max 100 characters).";
+    }
+
+    setErrors(newErrors);
+    return Object.keys(newErrors).length === 0;
+  };
+
+  const handleTopUp = async () => {
+    if (!validate()) return;
+
+    try {
+      setLoading(true);
+      const payload = {
+        walletId: wallet.id,
+        transactionType: "TOP_UP",
+        amount: parseFloat(amount),
+        recipientWalletId: null,
+        transactionDate: new Date().toISOString(),
+        description: note,
+      };
+
+      await axios.post(
+        "https://ewalled-api-production.up.railway.app/api/transactions",
+        payload
+      );
+      await fetchWalletByUserId(wallet.userId);
+      router.push({
+        pathname: "/status/success",
+        params: { type: "topup", amount },
+      });
+    } catch (error) {
+      console.error("Top up failed:", error);
+      router.push({ pathname: "/status/fail", params: { type: "topup" } });
+    } finally {
+      setLoading(false);
+    }
+  };
 
   return (
     <View style={styles.container}>
@@ -31,10 +89,12 @@ export default function Topup() {
           <Text style={styles.currency}>IDR</Text>
           <TextInput
             style={styles.amountInput}
-            defaultValue="0"
             keyboardType="numeric"
+            value={amount}
+            onChangeText={(text) => setAmount(text)}
           />
         </View>
+        {errors.amount && <Text style={styles.error}>{errors.amount}</Text>}
       </View>
 
       {/* Payment Method Dropdown */}
@@ -45,6 +105,7 @@ export default function Topup() {
         <Text style={styles.dropdownText}>{selectedMethod}</Text>
         <Image source={dropdownImg} style={styles.dropdownArrow} />
       </Pressable>
+      {errors.method && <Text style={styles.error}>{errors.method}</Text>}
 
       <Modal visible={modalVisible} transparent animationType="slide">
         <Pressable
@@ -74,20 +135,23 @@ export default function Topup() {
       {/* Notes */}
       <View style={styles.section}>
         <Text style={styles.notesLabel}>Notes</Text>
-        <TextInput style={styles.notesInput} placeholder="" />
+        <TextInput
+          style={styles.notesInput}
+          value={note}
+          onChangeText={(text) => setNote(text)}
+        />
+        {errors.note && <Text style={styles.error}>{errors.note}</Text>}
       </View>
 
       {/* Top Up Button */}
       <Pressable
         style={styles.topupButton}
-        onPress={() =>
-          router.push({
-            pathname: "/status/fail",
-            params: { type: "topup" },
-          })
-        }
+        onPress={handleTopUp}
+        disabled={loading}
       >
-        <Text style={styles.topupButtonText}>Top Up</Text>
+        <Text style={styles.topupButtonText}>
+          {loading ? "Processing..." : "Top Up"}
+        </Text>
       </Pressable>
     </View>
   );
@@ -129,7 +193,7 @@ const styles = StyleSheet.create({
     width: "100%",
   },
   dropdownBox: {
-    backgroundColor: "#fafbfd",
+    backgroundColor: "#fff",
     borderRadius: 10,
     padding: 16,
     marginBottom: 24,
@@ -183,5 +247,10 @@ const styles = StyleSheet.create({
   },
   modalItemText: {
     fontSize: 16,
+  },
+  error: {
+    color: "red",
+    marginTop: 4,
+    fontSize: 12,
   },
 });
