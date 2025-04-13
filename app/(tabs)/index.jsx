@@ -12,13 +12,20 @@ import plus from "../../assets/plus.png";
 import transfer from "../../assets/transfer.png";
 // import { transactions } from "../../data/transactions.js";
 import { useRouter } from "expo-router";
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { Searchbar } from "react-native-paper";
 import useAuthStore from "../store/authStore";
+import { useFocusEffect } from "@react-navigation/native";
 
 export default function HomeScreen() {
   const router = useRouter();
-  const { user, wallet, transactions } = useAuthStore();
+  const {
+    user,
+    wallet,
+    transactions,
+    fetchWalletByUserId,
+    fetchTransactionsByWalletId,
+  } = useAuthStore();
   const [showBalance, setShowBalance] = useState(true);
   const [searchQuery, setSearchQuery] = useState("");
   const [sortBy, setSortBy] = useState("Date");
@@ -27,6 +34,21 @@ export default function HomeScreen() {
   const [showSortOrderDropdown, setShowSortOrderDropdown] = useState(false);
   const [currentPage, setCurrentPage] = useState(1);
   const [itemsPerPage, setItemsPerPage] = useState(5);
+
+  useFocusEffect(
+    useCallback(() => {
+      const refreshData = async () => {
+        if (wallet?.userId) {
+          await fetchWalletByUserId(wallet.userId);
+          const updatedWallet = useAuthStore.getState().wallet;
+          if (updatedWallet?.id) {
+            await fetchTransactionsByWalletId(updatedWallet.id);
+          }
+        }
+      };
+      refreshData();
+    }, [wallet?.userId])
+  );
 
   const Dropdown = ({
     label,
@@ -66,18 +88,29 @@ export default function HomeScreen() {
 
   const filteredTransactions = transactions.filter(
     (item) =>
+      item.fromTo.toLowerCase().includes(searchQuery.toLowerCase()) ||
       item.transactionDate.toLowerCase().includes(searchQuery.toLowerCase()) ||
       item.transactionType.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      item.description?.toLowerCase().includes(searchQuery.toLowerCase())
+      item.amount.toString().includes(searchQuery)
   );
 
   const sortedTransactions = [...filteredTransactions].sort((a, b) => {
-    const valueA = sortBy === "Amount" ? a.amount : new Date(a.transactionDate);
-    const valueB = sortBy === "Amount" ? b.amount : new Date(b.transactionDate);
+    const getSignedAmount = (tx) => {
+      const isIncomingTransfer =
+        tx.transactionType === "TRANSFER" && tx.recipientWalletId === wallet.id;
+      const isTopUp = tx.transactionType === "TOP_UP";
+
+      const isPositive = isTopUp || isIncomingTransfer;
+      return isPositive ? tx.amount : -tx.amount;
+    };
+
+    const valueA =
+      sortBy === "Amount" ? getSignedAmount(a) : new Date(a.transactionDate);
+    const valueB =
+      sortBy === "Amount" ? getSignedAmount(b) : new Date(b.transactionDate);
 
     return sortOrder === "Ascending" ? valueA - valueB : valueB - valueA;
   });
-
   const startIdx = (currentPage - 1) * itemsPerPage;
   const endIdx = startIdx + itemsPerPage;
   const paginatedTransactions = sortedTransactions.slice(startIdx, endIdx);
