@@ -7,14 +7,16 @@ export default function RootLayout() {
   const router = useRouter();
   const user = useAuthStore((state) => state.user);
   const wallet = useAuthStore((state) => state.wallet);
+
   useEffect(() => {
-    // Wait until after mounting to redirect
-    requestAnimationFrame(() => {
-      if (!user || !wallet) {
+    if (!user || !wallet) {
+      // Delay routing to avoid navigation error before layout is mounted
+      setTimeout(() => {
         router.replace("/login");
-      }
-    });
-  }, []);
+      }, 0);
+    }
+  }, [user, wallet]);
+
   return (
     <PaperProvider>
       <Stack screenOptions={{ headerShown: false }}>

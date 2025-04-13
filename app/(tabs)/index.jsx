@@ -125,7 +125,7 @@ export default function HomeScreen() {
           {/* account no */}
           <View style={styles.account}>
             <Text style={styles.accountNo}>Account No.</Text>
-            <Text style={styles.accountNo}>{wallet.accountNumber}</Text>
+            <Text style={styles.accountNo}>{wallet?.accountNumber}</Text>
           </View>
 
           {/* balance card */}
