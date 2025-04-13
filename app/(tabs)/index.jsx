@@ -16,6 +16,7 @@ import { useState, useEffect, useCallback } from "react";
 import { Searchbar } from "react-native-paper";
 import useAuthStore from "../store/authStore";
 import { useFocusEffect } from "@react-navigation/native";
+import { capitalize } from "../../util/capitalize.js";
 
 export default function HomeScreen() {
   const router = useRouter();
@@ -206,10 +207,12 @@ export default function HomeScreen() {
         <View style={styles.transactionContainer}>
           <View style={styles.transactionItem}>
             <View style={styles.transactionLeft}>
-              <View style={styles.profileCircle} />
+              {/* <View style={styles.profileCircle} /> */}
               <View>
                 <Text style={styles.name}>
-                  {item.fromTo === "-" ? user.fullname : item.fromTo}
+                  {item.fromTo === "-"
+                    ? capitalize(user.fullname)
+                    : capitalize(item.fromTo)}
                 </Text>
                 <Text style={styles.type}>
                   {item.transactionType === "TOP_UP"

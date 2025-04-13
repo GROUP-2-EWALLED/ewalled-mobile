@@ -1,13 +1,7 @@
 import { View, Text, Image, StyleSheet } from "react-native";
 import sun from "../assets/sun.svg";
 import useAuthStore from "../app/store/authStore";
-
-function capitalize(str) {
-  return str
-    .split(" ")
-    .map((word) => word.charAt(0).toUpperCase() + word.slice(1).toLowerCase())
-    .join(" ");
-}
+import { capitalize } from "../util/capitalize";
 
 export default function Greeting() {
   const user = useAuthStore((state) => state.user);

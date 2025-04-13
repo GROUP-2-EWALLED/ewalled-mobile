@@ -4,13 +4,7 @@ import FontAwesome from "@expo/vector-icons/FontAwesome";
 import avatar from "../../assets/chelsea (1).png";
 import mode from "../../assets/mode.png";
 import useAuthStore from "../store/authStore";
-
-function capitalize(str) {
-  return str
-    .split(" ")
-    .map((word) => word.charAt(0).toUpperCase() + word.slice(1).toLowerCase())
-    .join(" ");
-}
+import { capitalize } from "../../util/capitalize";
 
 export default function TabLayout() {
   const user = useAuthStore((state) => state.user);
