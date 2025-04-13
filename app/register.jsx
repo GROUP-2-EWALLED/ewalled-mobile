@@ -14,6 +14,7 @@ import CheckBox from "expo-checkbox";
 import logo from "../assets/logo.png";
 import { useRouter } from "expo-router";
 import { useIsFocused } from "@react-navigation/native";
+import axios from "axios";
 
 const existingUsers = [
   { email: "test@gmail.com", username: "test", password: "Password123!" },
@@ -111,9 +112,36 @@ export default function RegisterScreen() {
     return Object.keys(newErrors).length === 0;
   };
 
-  const handleRegister = () => {
-    if (validate()) {
+  const handleRegister = async () => {
+    if (!validate()) return;
+    try {
+      const response = await axios.post(
+        "https://ewalled-api-production.up.railway.app/api/auth/register",
+        {
+          fullname: fullname,
+          username,
+          email,
+          password,
+          phoneNumber: phone,
+          avatarUrl: avatar,
+        }
+      );
+
+      console.log("Registration success:", response.data);
       router.replace("/login");
+    } catch (error) {
+      const msg = error.response?.data?.message || "Registration failed";
+      const newErrors = {};
+
+      if (msg.toLowerCase().includes("email")) {
+        newErrors.email = msg;
+      }
+      if (msg.toLowerCase().includes("username")) {
+        newErrors.username = msg;
+      }
+
+      console.error("Registration error:", msg);
+      setErrors((prev) => ({ ...prev, ...newErrors }));
     }
   };
 
