@@ -65,8 +65,10 @@ export default function LoginScreen() {
 
       router.replace("/"); // or navigate to Home
     } catch (err) {
-      console.error("Login failed", err);
       // show error messages
+      const message = "Email atau password salah.";
+      setEmailError(message);
+      setPasswordError(message);
     }
   };
 
