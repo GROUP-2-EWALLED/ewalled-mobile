@@ -90,9 +90,14 @@ export default function Topup() {
           <TextInput
             style={styles.amountInput}
             keyboardType="numeric"
+            placeholder="0"
             value={amount}
             onChangeText={(text) => setAmount(text)}
           />
+        </View>
+        <View style={styles.balanceRow}>
+          <Text style={styles.balanceLabel}>Balance</Text>
+          <Text style={styles.balanceValue}>Rp. {wallet.balance}</Text>
         </View>
         {errors.amount && <Text style={styles.error}>{errors.amount}</Text>}
       </View>
@@ -191,6 +196,18 @@ const styles = StyleSheet.create({
     fontWeight: "bold",
     flex: 1,
     width: "100%",
+  },
+  balanceRow: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    marginTop: 8,
+  },
+  balanceLabel: {
+    color: "#999",
+  },
+  balanceValue: {
+    color: "#0061ff",
+    fontWeight: "bold",
   },
   dropdownBox: {
     backgroundColor: "#fff",

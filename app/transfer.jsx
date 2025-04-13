@@ -11,31 +11,106 @@ import { useRouter } from "expo-router";
 import { useState } from "react";
 import searchIcon from "../assets/search.png";
 import accountNotFound from "../assets/account-not-found.png";
+import useAuthStore from "./store/authStore";
+import axios from "axios";
 
 export default function Transfer() {
   const router = useRouter();
+  const { wallet, fetchWalletByUserId } = useAuthStore();
+  const [amount, setAmount] = useState("");
+  const [note, setNote] = useState("");
+  const [errors, setErrors] = useState({});
+  const [loading, setLoading] = useState(false);
   const [toAccount, setToAccount] = useState("");
   const [modalVisible, setModalVisible] = useState(false);
   const [accountInfo, setAccountInfo] = useState(null);
   const [isAccountValid, setIsAccountValid] = useState(true);
 
-  const handleAccountCheck = () => {
-    if (toAccount === "9864290108") {
-      setAccountInfo({
-        accountNumber: "9864290108",
-        name: "Group 2",
-      });
+  const validateTransfer = () => {
+    const newErrors = {};
+    const amountNumber = parseFloat(amount);
+
+    if (!toAccount.trim()) {
+      newErrors.accountNumber = "Account number is required.";
+    } else if (!/^\d+$/.test(toAccount)) {
+      newErrors.accountNumber = "Account number must be numeric.";
+    } else if (toAccount === wallet.accountNumber) {
+      newErrors.accountNumber = "You cannot transfer to your own account.";
+    }
+
+    if (!amount.trim()) {
+      newErrors.amount = "Amount is required.";
+    } else if (isNaN(amountNumber) || amountNumber <= 0) {
+      newErrors.amount = "Amount must be a number greater than 0.";
+    } else if (amountNumber > parseFloat(wallet.balance)) {
+      newErrors.amount = "Insufficient balance.";
+    }
+
+    if (note.length > 100) {
+      newErrors.note = "Note is too long (max 100 characters).";
+    }
+
+    setErrors(newErrors);
+    return Object.keys(newErrors).length === 0;
+  };
+
+  const handleAccountCheck = async () => {
+    if (!toAccount.trim() || !/^\d+$/.test(toAccount)) {
+      setIsAccountValid(false);
+      setAccountInfo({ accountNumber: toAccount });
+      setModalVisible(true);
+      return;
+    }
+
+    try {
+      const response = await axios.get(
+        `https://ewalled-api-production.up.railway.app/api/wallets/check?accountNumber=${toAccount}`
+      );
+      const walletData = response.data;
+      setAccountInfo({ accountNumber: toAccount, name: walletData.fullName });
       setIsAccountValid(true);
       setModalVisible(true);
-    } else {
-      setAccountInfo({
-        accountNumber: toAccount,
-      });
+    } catch (error) {
+      setAccountInfo({ accountNumber: toAccount });
       setIsAccountValid(false);
       setModalVisible(true);
     }
+  };
 
-    console.log("pressed");
+  const handleTransfer = async () => {
+    if (!validateTransfer()) return;
+    try {
+      setLoading(true);
+      await axios.post(
+        "https://ewalled-api-production.up.railway.app/api/transactions",
+        {
+          walletId: wallet.id,
+          transactionType: "TRANSFER",
+          amount: parseFloat(amount),
+          recipientAccountNumber: toAccount,
+          description: note,
+        }
+      );
+
+      await fetchWalletByUserId(wallet.userId);
+      router.push({
+        pathname: "/status/success",
+        params: {
+          type: "transfer",
+          amount: parseFloat(amount),
+          recipient: `${toAccount} (${accountInfo?.name})`,
+        },
+      });
+    } catch (err) {
+      router.push({
+        pathname: "/status/fail",
+        params: {
+          type: "transfer",
+        },
+      });
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (
@@ -59,6 +134,11 @@ export default function Transfer() {
             <Image source={searchIcon} style={styles.searchIcon} />
           </Pressable>
         </View>
+        <View style={{ marginHorizontal: 12 }}>
+          {errors.accountNumber && (
+            <Text style={styles.error}>{errors.accountNumber}</Text>
+          )}
+        </View>
       </View>
 
       {/* Amount */}
@@ -69,36 +149,39 @@ export default function Transfer() {
           <TextInput
             style={styles.amountInput}
             keyboardType="numeric"
-            defaultValue="0"
+            placeholder="0"
+            value={amount}
+            onChangeText={(text) => setAmount(text)}
           />
         </View>
         <View style={styles.balanceRow}>
           <Text style={styles.balanceLabel}>Balance</Text>
-          <Text style={styles.balanceValue}>IDR 10.000.000</Text>
+          <Text style={styles.balanceValue}>Rp. {wallet.balance}</Text>
         </View>
+        {errors.amount && <Text style={styles.error}>{errors.amount}</Text>}
       </View>
 
       {/* Notes */}
       <View style={styles.section}>
         <Text style={styles.notesLabel}>Notes</Text>
-        <TextInput style={styles.notesInput} placeholder="" />
+        <TextInput
+          style={styles.notesInput}
+          value={note}
+          onChangeText={(text) => setNote(text)}
+        />
+        {errors.note && <Text style={styles.error}>{errors.note}</Text>}
       </View>
 
       {/* Transfer Button */}
       <Pressable
         style={styles.transferButton}
-        onPress={() =>
-          router.push({
-            pathname: "/status/success",
-            params: {
-              type: "transfer",
-              amount: "100.000",
-              recipient: "9864290108 (Group 2)",
-            },
-          })
-        }
+        onPress={handleTransfer}
+        disabled={loading}
       >
-        <Text style={styles.transferButtonText}>Transfer</Text>
+        <Text style={styles.transferButtonText}>
+          {" "}
+          {loading ? "Processing..." : "Transfer"}
+        </Text>
       </Pressable>
 
       {/* Modal for Account Info */}
@@ -317,5 +400,11 @@ const styles = StyleSheet.create({
     textAlign: "center",
     color: "#444",
     marginBottom: 20,
+  },
+
+  error: {
+    color: "red",
+    marginTop: 4,
+    fontSize: 12,
   },
 });
