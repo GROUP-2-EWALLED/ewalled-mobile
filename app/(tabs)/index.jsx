@@ -10,13 +10,15 @@ import Greeting from "../../components/greetings.jsx";
 import eye from "../../assets/view.png";
 import plus from "../../assets/plus.png";
 import transfer from "../../assets/transfer.png";
-import { transactions } from "../../data/transactions.js";
+// import { transactions } from "../../data/transactions.js";
 import { useRouter } from "expo-router";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Searchbar } from "react-native-paper";
+import useAuthStore from "../store/authStore";
 
 export default function HomeScreen() {
   const router = useRouter();
+  const { user, wallet, transactions } = useAuthStore();
   const [showBalance, setShowBalance] = useState(true);
   const [searchQuery, setSearchQuery] = useState("");
   const [sortBy, setSortBy] = useState("Date");
@@ -64,22 +66,16 @@ export default function HomeScreen() {
 
   const filteredTransactions = transactions.filter(
     (item) =>
-      item.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      item.type.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      item.date.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      item.amount.toString().includes(searchQuery.toLowerCase())
+      item.transactionDate.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      item.transactionType.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      item.description?.toLowerCase().includes(searchQuery.toLowerCase())
   );
 
   const sortedTransactions = [...filteredTransactions].sort((a, b) => {
-    if (sortBy === "Amount") {
-      return sortOrder === "Ascending"
-        ? a.amount - b.amount
-        : b.amount - a.amount;
-    } else {
-      return sortOrder === "Ascending"
-        ? new Date(a.date) - new Date(b.date)
-        : new Date(b.date) - new Date(a.date);
-    }
+    const valueA = sortBy === "Amount" ? a.amount : new Date(a.transactionDate);
+    const valueB = sortBy === "Amount" ? b.amount : new Date(b.transactionDate);
+
+    return sortOrder === "Ascending" ? valueA - valueB : valueB - valueA;
   });
 
   const startIdx = (currentPage - 1) * itemsPerPage;
@@ -96,7 +92,7 @@ export default function HomeScreen() {
           {/* account no */}
           <View style={styles.account}>
             <Text style={styles.accountNo}>Account No.</Text>
-            <Text style={styles.accountNo}>100899</Text>
+            <Text style={styles.accountNo}>{wallet.accountNumber}</Text>
           </View>
 
           {/* balance card */}
@@ -105,7 +101,14 @@ export default function HomeScreen() {
               <Text style={styles.balance}>Balance</Text>
               <View style={styles.balanceAmountRow}>
                 <Text style={styles.amount}>
-                  {showBalance ? "Rp 10.000.000" : "••••••••"}
+                  {showBalance
+                    ? `Rp ${Number(wallet?.balance || 0).toLocaleString(
+                        "id-ID",
+                        {
+                          minimumFractionDigits: 2,
+                        }
+                      )}`
+                    : "Rp ••••••••"}
                 </Text>
                 <TouchableOpacity onPress={() => setShowBalance(!showBalance)}>
                   <Image style={styles.eye} source={eye} />
@@ -172,20 +175,39 @@ export default function HomeScreen() {
             <View style={styles.transactionLeft}>
               <View style={styles.profileCircle} />
               <View>
-                <Text style={styles.name}>{item.name}</Text>
-                <Text style={styles.type}>{item.type}</Text>
-                <Text style={styles.date}>{item.date}</Text>
+                <Text style={styles.name}>
+                  {item.fromTo === "-" ? user.fullname : item.fromTo}
+                </Text>
+                <Text style={styles.type}>
+                  {item.transactionType === "TOP_UP"
+                    ? "Top Up"
+                    : item.transactionType === "TRANSFER"
+                    ? "Transfer"
+                    : item.transactionType}
+                </Text>
+                <Text style={styles.date}>
+                  {new Date(item.transactionDate).toLocaleString("id-ID")}
+                </Text>
               </View>
             </View>
             <Text
               style={[
                 styles.amountText,
-                { color: item.amount > 0 ? "green" : "black" },
+                {
+                  color:
+                    item.transactionType === "TOP_UP" ||
+                    (item.transactionType === "TRANSFER" &&
+                      item.recipientWalletId === wallet.id)
+                      ? "green"
+                      : "red",
+                },
               ]}
             >
-              {item.amount > 0
-                ? `+ ${item.amount}`
-                : `- ${Math.abs(item.amount)}`}
+              {item.transactionType === "TOP_UP" ||
+              (item.transactionType === "TRANSFER" &&
+                item.recipientWalletId === wallet.id)
+                ? `+ ${Number(item.amount).toLocaleString("id-ID")}`
+                : `- ${Number(item.amount).toLocaleString("id-ID")}`}
             </Text>
           </View>
           <View style={styles.divider} />

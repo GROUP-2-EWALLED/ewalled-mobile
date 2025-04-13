@@ -3,8 +3,21 @@ import { Image, Text, View, StyleSheet } from "react-native";
 import FontAwesome from "@expo/vector-icons/FontAwesome";
 import avatar from "../../assets/chelsea (1).png";
 import mode from "../../assets/mode.png";
+import useAuthStore from "../store/authStore";
+
+function capitalize(str) {
+  return str
+    .split(" ")
+    .map((word) => word.charAt(0).toUpperCase() + word.slice(1).toLowerCase())
+    .join(" ");
+}
 
 export default function TabLayout() {
+  const user = useAuthStore((state) => state.user);
+  const avatarUrl =
+    user?.avatarUrl ||
+    `https://avatar.iran.liara.run/username?username=${user?.fullname}`;
+  const capitalizedFullName = capitalize(user?.fullname || "");
   return (
     <Tabs screenOptions={{ tabBarActiveTintColor: "blue" }}>
       <Tabs.Screen
@@ -16,9 +29,9 @@ export default function TabLayout() {
           ),
           headerTitle: () => (
             <View style={styles.profileHeader}>
-              <Image source={avatar} style={styles.avatar} />
+              <Image source={{ uri: avatarUrl }} style={styles.avatar} />
               <View style={styles.profileText}>
-                <Text style={styles.name}>Chelsea Immanuela</Text>
+                <Text style={styles.name}>{capitalizedFullName}</Text>
                 <Text style={styles.accountType}>Personal Account</Text>
               </View>
 
