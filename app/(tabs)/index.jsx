@@ -11,6 +11,8 @@ import eye from "../../assets/view.png";
 import plus from "../../assets/plus.png";
 import transfer from "../../assets/transfer.png";
 // import { transactions } from "../../data/transactions.js";
+import { FAB } from "react-native-paper";
+import * as Linking from "expo-linking";
 import { useRouter } from "expo-router";
 import { useState, useEffect, useCallback } from "react";
 import { Searchbar } from "react-native-paper";
@@ -117,174 +119,188 @@ export default function HomeScreen() {
   const paginatedTransactions = sortedTransactions.slice(startIdx, endIdx);
 
   return (
-    <FlatList
-      data={paginatedTransactions}
-      keyExtractor={(item) => item.id.toString()}
-      ListHeaderComponent={
-        <>
-          <Greeting />
-          {/* account no */}
-          <View style={styles.account}>
-            <Text style={styles.accountNo}>Account No.</Text>
-            <Text style={styles.accountNo}>{wallet?.accountNumber}</Text>
-          </View>
+    <>
+      <FlatList
+        data={paginatedTransactions}
+        keyExtractor={(item) => item.id.toString()}
+        ListHeaderComponent={
+          <>
+            <Greeting />
+            {/* account no */}
+            <View style={styles.account}>
+              <Text style={styles.accountNo}>Account No.</Text>
+              <Text style={styles.accountNo}>{wallet?.accountNumber}</Text>
+            </View>
 
-          {/* balance card */}
-          <View style={styles.balanceCard}>
-            <View style={styles.balanceRow}>
-              <Text style={styles.balance}>Balance</Text>
-              <View style={styles.balanceAmountRow}>
-                <Text style={styles.amount}>
-                  {showBalance
-                    ? `Rp ${Number(wallet?.balance || 0).toLocaleString(
-                        "id-ID",
-                        {
-                          minimumFractionDigits: 2,
-                        }
-                      )}`
-                    : "Rp ••••••••"}
-                </Text>
-                <TouchableOpacity onPress={() => setShowBalance(!showBalance)}>
-                  <Image style={styles.eye} source={eye} />
+            {/* balance card */}
+            <View style={styles.balanceCard}>
+              <View style={styles.balanceRow}>
+                <Text style={styles.balance}>Balance</Text>
+                <View style={styles.balanceAmountRow}>
+                  <Text style={styles.amount}>
+                    {showBalance
+                      ? `Rp ${Number(wallet?.balance || 0).toLocaleString(
+                          "id-ID",
+                          {
+                            minimumFractionDigits: 2,
+                          }
+                        )}`
+                      : "Rp ••••••••"}
+                  </Text>
+                  <TouchableOpacity
+                    onPress={() => setShowBalance(!showBalance)}
+                  >
+                    <Image style={styles.eye} source={eye} />
+                  </TouchableOpacity>
+                </View>
+              </View>
+
+              <View style={styles.actionRow}>
+                <TouchableOpacity
+                  style={styles.actionButton}
+                  onPress={() => router.push("/topup")}
+                >
+                  <Image source={plus} style={styles.actionIcon} />
+                </TouchableOpacity>
+
+                <TouchableOpacity
+                  style={styles.actionButton}
+                  onPress={() => router.push("/transfer")}
+                >
+                  <Image source={transfer} style={styles.actionIcon} />
                 </TouchableOpacity>
               </View>
             </View>
 
-            <View style={styles.actionRow}>
-              <TouchableOpacity
-                style={styles.actionButton}
-                onPress={() => router.push("/topup")}
-              >
-                <Image source={plus} style={styles.actionIcon} />
-              </TouchableOpacity>
-
-              <TouchableOpacity
-                style={styles.actionButton}
-                onPress={() => router.push("/transfer")}
-              >
-                <Image source={transfer} style={styles.actionIcon} />
-              </TouchableOpacity>
-            </View>
-          </View>
-
-          {/* control bar */}
-          <View style={styles.controlBar}>
-            {/* Search Bar */}
-            <Searchbar
-              placeholder="Search transactions"
-              onChangeText={setSearchQuery}
-              value={searchQuery}
-              style={styles.searchBar}
-            />
-            <View style={styles.sortWrapper}>
-              <Text style={{ marginRight: 4, alignSelf: "center" }}>
-                Sort By
-              </Text>
-              <Dropdown
-                label=""
-                options={["Date", "Amount"]}
-                value={sortBy}
-                onSelect={setSortBy}
-                visible={showSortByDropdown}
-                setVisible={setShowSortByDropdown}
+            {/* control bar */}
+            <View style={styles.controlBar}>
+              {/* Search Bar */}
+              <Searchbar
+                placeholder="Search transactions"
+                onChangeText={setSearchQuery}
+                value={searchQuery}
+                style={styles.searchBar}
               />
+              <View style={styles.sortWrapper}>
+                <Text style={{ marginRight: 4, alignSelf: "center" }}>
+                  Sort By
+                </Text>
+                <Dropdown
+                  label=""
+                  options={["Date", "Amount"]}
+                  value={sortBy}
+                  onSelect={setSortBy}
+                  visible={showSortByDropdown}
+                  setVisible={setShowSortByDropdown}
+                />
 
-              <Dropdown
-                label=""
-                options={["Ascending", "Descending"]}
-                value={sortOrder}
-                onSelect={setSortOrder}
-                visible={showSortOrderDropdown}
-                setVisible={setShowSortOrderDropdown}
-              />
-            </View>
-          </View>
-
-          <Text style={styles.transactionTitle}>Transaction History</Text>
-        </>
-      }
-      renderItem={({ item }) => (
-        <View style={styles.transactionContainer}>
-          <View style={styles.transactionItem}>
-            <View style={styles.transactionLeft}>
-              {/* <View style={styles.profileCircle} /> */}
-              <View>
-                <Text style={styles.name}>
-                  {item.fromTo === "-"
-                    ? capitalize(user.fullname)
-                    : capitalize(item.fromTo)}
-                </Text>
-                <Text style={styles.type}>
-                  {item.transactionType === "TOP_UP"
-                    ? "Top Up"
-                    : item.transactionType === "TRANSFER"
-                    ? "Transfer"
-                    : item.transactionType}
-                </Text>
-                <Text style={styles.date}>
-                  {new Date(item.transactionDate).toLocaleString("id-ID")}
-                </Text>
+                <Dropdown
+                  label=""
+                  options={["Ascending", "Descending"]}
+                  value={sortOrder}
+                  onSelect={setSortOrder}
+                  visible={showSortOrderDropdown}
+                  setVisible={setShowSortOrderDropdown}
+                />
               </View>
             </View>
-            <Text
+
+            <Text style={styles.transactionTitle}>Transaction History</Text>
+          </>
+        }
+        renderItem={({ item }) => (
+          <View style={styles.transactionContainer}>
+            <View style={styles.transactionItem}>
+              <View style={styles.transactionLeft}>
+                {/* <View style={styles.profileCircle} /> */}
+                <View>
+                  <Text style={styles.name}>
+                    {item.fromTo === "-"
+                      ? capitalize(user.fullname)
+                      : capitalize(item.fromTo)}
+                  </Text>
+                  <Text style={styles.type}>
+                    {item.transactionType === "TOP_UP"
+                      ? "Top Up"
+                      : item.transactionType === "TRANSFER"
+                      ? "Transfer"
+                      : item.transactionType}
+                  </Text>
+                  <Text style={styles.date}>
+                    {new Date(item.transactionDate).toLocaleString("id-ID")}
+                  </Text>
+                </View>
+              </View>
+              <Text
+                style={[
+                  styles.amountText,
+                  {
+                    color:
+                      item.transactionType === "TOP_UP" ||
+                      (item.transactionType === "TRANSFER" &&
+                        item.recipientWalletId === wallet.id)
+                        ? "green"
+                        : "red",
+                  },
+                ]}
+              >
+                {item.transactionType === "TOP_UP" ||
+                (item.transactionType === "TRANSFER" &&
+                  item.recipientWalletId === wallet.id)
+                  ? `+ ${Number(item.amount).toLocaleString("id-ID")}`
+                  : `- ${Number(item.amount).toLocaleString("id-ID")}`}
+              </Text>
+            </View>
+            <View style={styles.divider} />
+          </View>
+        )}
+        ListEmptyComponent={
+          <View style={styles.emptyState}>
+            <Text style={styles.emptyText}>No transactions available</Text>
+          </View>
+        }
+        contentContainerStyle={styles.container}
+        ListFooterComponent={
+          <View style={styles.paginationContainer}>
+            <TouchableOpacity
+              onPress={() => setCurrentPage((prev) => Math.max(prev - 1, 1))}
+              disabled={currentPage === 1}
               style={[
-                styles.amountText,
-                {
-                  color:
-                    item.transactionType === "TOP_UP" ||
-                    (item.transactionType === "TRANSFER" &&
-                      item.recipientWalletId === wallet.id)
-                      ? "green"
-                      : "red",
-                },
+                styles.paginationButton,
+                currentPage === 1 && styles.disabledButton,
               ]}
             >
-              {item.transactionType === "TOP_UP" ||
-              (item.transactionType === "TRANSFER" &&
-                item.recipientWalletId === wallet.id)
-                ? `+ ${Number(item.amount).toLocaleString("id-ID")}`
-                : `- ${Number(item.amount).toLocaleString("id-ID")}`}
-            </Text>
-          </View>
-          <View style={styles.divider} />
-        </View>
-      )}
-      ListEmptyComponent={
-        <View style={styles.emptyState}>
-          <Text style={styles.emptyText}>No transactions available</Text>
-        </View>
-      }
-      contentContainerStyle={styles.container}
-      ListFooterComponent={
-        <View style={styles.paginationContainer}>
-          <TouchableOpacity
-            onPress={() => setCurrentPage((prev) => Math.max(prev - 1, 1))}
-            disabled={currentPage === 1}
-            style={[
-              styles.paginationButton,
-              currentPage === 1 && styles.disabledButton,
-            ]}
-          >
-            <Text style={styles.paginationText}>Previous</Text>
-          </TouchableOpacity>
+              <Text style={styles.paginationText}>Previous</Text>
+            </TouchableOpacity>
 
-          <TouchableOpacity
-            onPress={() =>
-              setCurrentPage((prev) =>
-                endIdx < sortedTransactions.length ? prev + 1 : prev
-              )
-            }
-            disabled={endIdx >= sortedTransactions.length}
-            style={[
-              styles.paginationButton,
-              endIdx >= sortedTransactions.length && styles.disabledButton,
-            ]}
-          >
-            <Text style={styles.paginationText}>Next</Text>
-          </TouchableOpacity>
-        </View>
-      }
-    />
+            <TouchableOpacity
+              onPress={() =>
+                setCurrentPage((prev) =>
+                  endIdx < sortedTransactions.length ? prev + 1 : prev
+                )
+              }
+              disabled={endIdx >= sortedTransactions.length}
+              style={[
+                styles.paginationButton,
+                endIdx >= sortedTransactions.length && styles.disabledButton,
+              ]}
+            >
+              <Text style={styles.paginationText}>Next</Text>
+            </TouchableOpacity>
+          </View>
+        }
+      />
+      <FAB
+        icon="download"
+        style={styles.downloadButton}
+        color="#fff"
+        onPress={() =>
+          Linking.openURL(
+            `https://ewalled-api-production.up.railway.app/api/transactions/export/pdf?walletId=${wallet?.id}`
+          )
+        }
+      />
+    </>
   );
 }
 
@@ -509,5 +525,13 @@ const styles = StyleSheet.create({
 
   disabledButton: {
     backgroundColor: "#ccc",
+  },
+
+  // download button styles
+  downloadButton: {
+    position: "absolute",
+    bottom: 90, // keep it above pagination
+    right: 20,
+    backgroundColor: "#0061FF",
   },
 });
