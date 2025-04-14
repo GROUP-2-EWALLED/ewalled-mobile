@@ -17,6 +17,7 @@ import {
 } from "victory-native";
 import { useEffect } from "react";
 import axios from "axios";
+import Feather from "react-native-vector-icons/Feather";
 
 export default function Overview() {
   const [period, setPeriod] = useState("weekly"); // "weekly", "monthly", "quarterly"
@@ -74,10 +75,22 @@ export default function Overview() {
       </View>
 
       <View style={styles.balanceCard}>
-        <Text style={styles.balanceLabel}>Balance</Text>
-        <Text style={styles.balanceValue}>
-          Rp {selectedData.netBalance.toLocaleString("id-ID")}
-        </Text>
+        <Text style={styles.balanceLabel}>Net Balance</Text>
+        {selectedData.netBalance < 0 ? (
+          <View style={{ flexDirection: "row", gap: 10 }}>
+            <Feather name="trending-down" size={24} color="#cc0000" />
+            <Text style={styles.negativeBalanceValue}>
+              Rp {selectedData.netBalance.toLocaleString("id-ID")}
+            </Text>
+          </View>
+        ) : (
+          <View style={{ flexDirection: "row", gap: 10 }}>
+            <Feather name="trending-up" size={24} color="green" />
+            <Text style={styles.positiveBalanceValue}>
+              Rp {selectedData.netBalance.toLocaleString("id-ID")}
+            </Text>
+          </View>
+        )}
       </View>
 
       <View style={styles.chartWrapper}>
@@ -92,19 +105,19 @@ export default function Overview() {
 
           <VictoryAxis
             style={{
-              tickLabels: { angle: -15, fontSize: 10, padding: 10 },
+              tickLabels: { angle: -15, fontSize: 8, padding: 10 },
             }}
           />
           <VictoryAxis
             dependentAxis
             tickFormat={(x) => `Rp ${x / 1_000_000} jt`}
             style={{
-              tickLabels: { fontSize: 10, padding: 5 },
+              tickLabels: { fontSize: 8, padding: 5 },
             }}
           />
 
           <VictoryLegend
-            x={90}
+            x={120}
             y={10}
             orientation="horizontal"
             gutter={20}
@@ -178,10 +191,15 @@ const styles = StyleSheet.create({
     color: "#666",
     marginBottom: 4,
   },
-  balanceValue: {
+  negativeBalanceValue: {
     fontWeight: "bold",
     fontSize: 18,
     color: "#cc0000",
+  },
+  positiveBalanceValue: {
+    fontWeight: "bold",
+    fontSize: 18,
+    color: "green",
   },
   chartWrapper: {
     height: 300,
