@@ -102,12 +102,18 @@ export default function Transfer() {
         },
       });
     } catch (err) {
-      router.push({
-        pathname: "/status/fail",
-        params: {
-          type: "transfer",
-        },
-      });
+      const msg = err.response?.data?.message;
+      if (msg?.toLowerCase().includes("not found")) {
+        setIsAccountValid(false);
+        setModalVisible(true);
+      } else {
+        router.push({
+          pathname: "/status/fail",
+          params: {
+            type: "transfer",
+          },
+        });
+      }
     } finally {
       setLoading(false);
     }
