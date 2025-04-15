@@ -140,7 +140,11 @@ export default function RegisterScreen() {
         newErrors.username = msg;
       }
 
-      console.error("Registration error:", msg);
+      if (msg?.toLowerCase().includes("phone")) {
+        newErrors.phone = msg;
+      }
+
+      // console.error("Registration error:", msg);
       setErrors((prev) => ({ ...prev, ...newErrors }));
     }
   };
